@@ -19,34 +19,36 @@ sudo apt-get install nvidia-driver-460 nvidia-cuda-toolkit
 git clone https://github.com/rojas70/learning_ros_setup_scripts.git
 cd learning_ros_setup_scripts/melodic/
 chmod +x *.sh
+./install_ros_and_tools_melodic.sh 
 ./setup_workspace_learning_ros_melodic.sh [user_name] [email]
 ```
 
 ### 3 Install dependencies
 ``` 
-sudo apt install ros-melodic-controller-manager
-sudo apt install ros-melodic-controller
 sudo apt install ros-melodic-eigen-stl-containers 
 sudo apt install ros-melodic-eigenpy
-sudo apt install ros-melodic-four-wheel-steering-msgs 
-sudo apt install ros-melodic-gazebo-plugins
-sudo apt install ros-melodic-gazebo-ros
-sudo apt install ros-melodic-gazebo-ros-control
 sudo apt install ros-melodic-graph-msgs 
 sudo apt install ros-melodic-octomap
 sudo apt install ros-melodic-ompl
 sudo apt install ros-melodic-pybind11-catkin 
 sudo apt install ros-melodic-random-numbers
+sudo apt install ros-melodic-srdfdom
+
+sudo apt install ros-melodic-controller-manager
+sudo apt install ros-melodic-controller
+sudo apt install ros-melodic-four-wheel-steering-msgs 
+sudo apt install ros-melodic-gazebo-plugins
+sudo apt install ros-melodic-gazebo-ros
+sudo apt install ros-melodic-gazebo-ros-control
 sudo apt install ros-melodic-rosparam-shortcuts
 sudo apt install ros-melodic-ros-controller
 sudo apt install ros-melodic-ros-controllers 
 sudo apt install ros-melodic-ros-control
-sudo apt install ros-melodic-srdfdom
 sudo apt install ros-melodic-urdf-geometry-parser
 sudo apt install ros-melodic-warehouse-ros
 sudo apt install ros-$ROS_DISTRO-gazebo-ros-control ros-${ROS_DISTRO}-rospy-message-converter ros-${ROS_DISTRO}-effort-controllers ros-${ROS_DISTRO}-joint-state-controller ros-${ROS_DISTRO}-moveit ros-${ROS_DISTRO}-moveit-commander ros-${ROS_DISTRO}-moveit-visual-tools
 
-sudo apt install libglew
+sudo apt install libglew-dev
 sudo apt install python3-wstool
 sudo apt install python3-pip
 python3 -m pip install --upgrade pip
