@@ -19,7 +19,7 @@
              to launching baxter_world -->
   <arg name="load_robot_description" default="true"/>
   <param if="$(arg load_robot_description)" name="robot_description"
-      command="$(find xacro)/xacro --inorder '$(find baxter_description)/urdf/baxter_camera.urdf.xacro' use_cylinder_collision_model:=false gazebo:=true"/>
+      command="$(find xacro)/xacro --inorder '$(find deep_grasp_task)/urdf/robots/baxter_camera.urdf.xacro' use_cylinder_collision_model:=false gazebo:=true"/>
 
   <!-- We resume the logic in empty_world.launch, changing the name of the world to be launched -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
