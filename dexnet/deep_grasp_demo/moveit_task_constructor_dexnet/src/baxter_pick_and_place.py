@@ -218,14 +218,17 @@ def main():
     	    if q_values < res.q_values[i]:
     	        q_values = res.q_values[i]
     	        grasps = res.grasps[i]
+        grasps.pose.orientation = Quaternion(0, 1, 0, 0)
+        grasps.pose.position.x += 0.71
+        grasps.pose.position.y += 0.09
+        grasps.pose.position.z -= 0.65
         print("get pose from gqcnn_grasp with max q_values")
-        print(grasps)
+        print(grasps, q_values)
 
     block_poses = list()
     block_poses.append(grasps.pose)
-    block_poses.append(Pose(
-        position=Point(x=0.75, y=0.0, z=-0.129),
-        orientation=overhead_orientation))
+    grasps.pose.position.y -= 0.2
+    block_poses.append(grasps.pose)
         
     # Move to the desired starting angles
     pnp.move_to_start(starting_joint_angles)
