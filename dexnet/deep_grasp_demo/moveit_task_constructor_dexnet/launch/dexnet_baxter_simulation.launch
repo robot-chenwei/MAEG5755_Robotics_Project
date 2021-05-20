@@ -19,9 +19,9 @@
 
   <arg unless="$(arg load_images)" name="color_img_topic" value="/camera/rgb/image_raw" doc="topic name for raw color image"/>
   <arg unless="$(arg load_images)" name="depth_img_topic" value="/camera/depth/image_raw" doc="topic name for raw depth image"/>
-  
+
   <!-- Run MTC pick and place -->
-  <node name="baxter_pick_and_place" pkg="moveit_task_constructor_dexnet" type="baxter_pick_and_place_robot.py" output="screen">
+  <node name="baxter_pick_and_place" pkg="moveit_task_constructor_dexnet" type="baxter_pick_and_place.py" output="screen">
   </node>
 
   <!-- Grasp detection using GQCNN and Dex-Net data sets -->

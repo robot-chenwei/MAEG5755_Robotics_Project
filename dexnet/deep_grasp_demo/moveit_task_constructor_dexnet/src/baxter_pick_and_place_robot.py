@@ -69,10 +69,11 @@ class PickAndPlace(object):
         self._hover_distance = hover_distance # in meters
         self._verbose = verbose # bool
         self._limb = baxter_interface.Limb(limb)
+        print("Getting __init__... ")
         self._gripper = baxter_interface.Gripper(limb)
-        ns = "ExternalTools/" + limb + "/PositionKinematicsNode/IKService"
-        self._iksvc = rospy.ServiceProxy(ns, SolvePositionIK)
-        rospy.wait_for_service(ns, 5.0)
+        #ns = "ExternalTools/" + limb + "/PositionKinematicsNode/IKService"
+        #self._iksvc = rospy.ServiceProxy(ns, SolvePositionIK)
+        #rospy.wait_for_service(ns, 5.0)
         # verify robot is enabled
         print("Getting robot state... ")
         self._rs = baxter_interface.RobotEnable(baxter_interface.CHECK_VERSION)
@@ -178,50 +179,33 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 # OpenCV2 for saving an image
 import cv2
+import pyrealsense2 as rs
+import geometry_msgs.msg
+from tf.transformations import quaternion_matrix
 
-# Instantiate CvBridge
-bridge = CvBridge()
-depthImage = Image()
-colorImage = Image()
-saveImageFinish = False
-def depth_image_callback(msg):
-    global bridge, depthImage, saveImageFinish
-    try:
-        # Convert your ROS Image message to OpenCV2
-        if not saveImageFinish:
-            depthImage = bridge.imgmsg_to_cv2(msg, "passthrough")
-            depthImage = depthImage * 255.0
-            depthImage = numpy.nan_to_num(depthImage, nan=0.0)
-            depthImage = depthImage.astype(numpy.uint8)
-            depthImage = cv2.cvtColor(depthImage, cv2.COLOR_GRAY2BGR) # 8UC1
-    except CvBridgeError as e:
-        print(e)
-def color_image_callback(msg):
-    global bridge, colorImage
-    try:
-        # Convert your ROS Image message to OpenCV2
-        colorImage = bridge.imgmsg_to_cv2(msg, "passthrough")
-        # Convert your ROS Image message to OpenCV2# require Numpy arrays.
-        #cv_image_array = numpy.array(cv_image, dtype = numpy.dtype('f8'))
-        # Normalize the depth image to fall between 0 (black) and 1 (white)
-        # http://docs.ros.org/electric/api/rosbag_video/html/bag__to__video_8cpp_source.html lines 95-125
-        #saveImage = cv2.normalize(cv_image_array, cv_image_array, 0, 1, cv2.NORM_MINMAX)
-    except CvBridgeError as e:
-        print(e)
+# Configure depth and color streams
+pipeline = rs.pipeline()
+config = rs.config()
+config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+ 
+# Start streaming
+profile = pipeline.start(config)
+depth_sensor = profile.get_device().first_depth_sensor()
+depth_scale = depth_sensor.get_depth_scale()
+align = rs.align(rs.stream.color)
 
 def main():
+    print('INFO: Start python script!!!')
     global bridge, saveImage, saveImageFinish
     rospy.init_node("baxter_pick_and_place_demo")
-    # Set up your subscriber and define its callback
-    rospy.Subscriber("/camera/depth/image_raw", Image, depth_image_callback)
-    rospy.Subscriber("/camera/rgb/image_raw", Image, color_image_callback)
-
+    print('INFO: Start ros node !!!')
     # Load Gazebo Models via Spawning Services
     # Note that the models reference is the /world frame
     # and the IK operates with respect to the /base frame
 
     # Wait for the All Clear from emulator startup
-    rospy.wait_for_message("/robot/sim/started", Empty)
+    # rospy.wait_for_message("/robot/sim/started", Empty)
 
     limb = 'left'
     hover_distance = 0.15 # meters
@@ -239,12 +223,36 @@ def main():
                              
     # Feel free to add additional desired poses for the object.
     # Each additional pose will get its own pick and place.
+
+    print('INFO: Start read images !!!')
+    getImage = False
+    while not getImage:
+        frames = pipeline.wait_for_frames()
+        aligned_frames = align.process(frames)
+        color_frame = aligned_frames.get_color_frame()
+        depth_frame = aligned_frames.get_depth_frame()
+        if not depth_frame or not color_frame:
+            continue
+        else:
+            getImage = True
+
+    # Convert images to np arrays
+    colorImage = numpy.asanyarray(color_frame.get_data())
+    grayImage = cv2.cvtColor(colorImage, cv2.COLOR_BGR2GRAY)
+    depthImage = numpy.asanyarray(depth_frame.get_data())
+    depthImage = (depthImage < 600) * depthImage
+    depthImage = (grayImage > 9) * depthImage
+    depthImage = depthImage * 255.0 / 1000.0
+    depthImage = numpy.nan_to_num(depthImage, nan=0.0)
+    depthImage = depthImage.astype(numpy.uint8)
+    # depthImage = cv2.cvtColor(depthImage, cv2.COLOR_GRAY2BGR) # 8UC1
     print('save image')
-    cv2.imwrite('/home/trs/ros_ws/depth.png', depthImage)
     cv2.imwrite('/home/trs/ros_ws/color.png', colorImage)
+    cv2.imwrite('/home/trs/ros_ws/depth.png', depthImage)
     rospy.sleep(1)
     saveImageFinish = True
     print('calculate pose')
+
     try: 
         rospy.wait_for_service('gqcnn_grasp')
         gqcnn_grasp = rospy.ServiceProxy('gqcnn_grasp', GQCNNGrasp)
@@ -263,17 +271,22 @@ def main():
         grasps = copy.deepcopy(res.grasps[0])
         canGrasp = False
         for i in range(0, res_size):
-            
             res.grasps[i].pose.orientation = overhead_orientation
+            T = numpy.array([[ 0.9971, -0.0362, -0.0666,  0.9101], 
+                             [ 0.0171, -0.7482,  0.6632, -0.2712],
+                             [-0.0738, -0.6626, -0.7454,  0.4262],
+                             [ 0.0000,  0.0000,  0.0000,  1.0000]])
             x = res.grasps[i].pose.position.x
             y = res.grasps[i].pose.position.y
             z = res.grasps[i].pose.position.z
-            res.grasps[i].pose.position.x = z + 0.19
-            res.grasps[i].pose.position.y = -x - 0.01
-            res.grasps[i].pose.position.z = -y + 0.02
+            cPo = numpy.array([x, y, z, 1])
+            bPo = numpy.dot(T, cPo)
+            print('cPo', cPo)
+            print('bPo', bPo)
+            res.grasps[i].pose.position.x = bPo[0]
+            res.grasps[i].pose.position.y = bPo[1]
+            res.grasps[i].pose.position.z = bPo[2] + 0.02
             
-            # res.grasps[i].pose.position.y += 0.02
-            # res.grasps[i].pose.position.z -= 0.55
             canSolveIK1 = pnp.ik_request(res.grasps[i].pose)
             res.grasps[i].pose.position.z += pnp._hover_distance
             canSolveIK2 = pnp.ik_request(res.grasps[i].pose)
@@ -287,10 +300,10 @@ def main():
                 canGrasp = True
         print("INFO: Get pose from gqcnn_grasp with max q_values")
         print(grasps, '\n q_value = ', q_values)
-        print(pnp.ik_request(res.grasps[i].pose))
-        res.grasps[i].pose.position.z += pnp._hover_distance
-        print(pnp.ik_request(res.grasps[i].pose))
-        res.grasps[i].pose.position.z -= pnp._hover_distance
+        print(pnp.ik_request(grasps.pose))
+        grasps.pose.position.z += pnp._hover_distance
+        print(pnp.ik_request(grasps.pose))
+        grasps.pose.position.z -= pnp._hover_distance
     else:
         print('ERROR: No return from gqcnn!')
     if not canGrasp:
