@@ -144,6 +144,8 @@ if __name__ == "__main__":
 
     # Query policy for all sampled grasps
     grasp_candidates, q_values = policy.action_set(state)
+    # print('grasp_candidates', grasp_candidates)
+    # print('q_values', q_values)
 
     candidate_array = []
     for i in range(len(grasp_candidates)):
@@ -159,31 +161,31 @@ if __name__ == "__main__":
     pickle_sols.close()
 
 
-    # # Query policy for best grasp
-    # policy_start = time.time()
-    # action = policy(state)
-    # print("Planning took %.3f sec" % (time.time() - policy_start))
-    # print("Gripper pose: ", action.grasp.pose())
+    # Query policy for best grasp
+    policy_start = time.time()
+    action = policy(state)
+    print("Planning took %.3f sec" % (time.time() - policy_start))
+    print("Gripper pose: ", action.grasp.pose())
     #
-    # # Position: [x y z]
-    # # Orientation: [qw qx qy qz]
-    # grasp_candidate = np.array([action.grasp.pose().to_frame,
-    #                             action.grasp.pose().position,
-    #                             action.grasp.pose().quaternion,
-    #                             action.q_value])
+    # Position: [x y z]
+    # Orientation: [qw qx qy qz]
+    grasp_candidate = np.array([action.grasp.pose().to_frame,
+                                action.grasp.pose().position,
+                                action.grasp.pose().quaternion,
+                                action.q_value])
+    
+    # serialize candidates
+    pickle_sols = open(sampled_grasps_filename, "wb")
+    pickle.dump([grasp_candidate], pickle_sols, protocol=2)
+    pickle_sols.close()
     #
-    # # serialize candidates
-    # pickle_sols = open(sampled_grasps_filename, "wb")
-    # pickle.dump([grasp_candidate], pickle_sols, protocol=2)
-    # pickle_sols.close()
-    #
-    # # Vis final grasp.
-    # if policy_config["vis"]["final_grasp"]:
-    #     vis.figure(size=(10, 10))
-    #     vis.imshow(rgbd_im.depth,
-    #                vmin=policy_config["vis"]["vmin"],
-    #                vmax=policy_config["vis"]["vmax"])
-    #     vis.grasp(action.grasp, scale=2.5, show_center=False, show_axis=True)
-    #     vis.title("Planned grasp at depth {0:.3f}m with Q={1:.3f}".format(
-    #         action.grasp.depth, action.q_value))
-    #     vis.show()
+    # Vis final grasp.
+    if policy_config["vis"]["final_grasp"]:
+        vis.figure(size=(10, 10))
+        vis.imshow(rgbd_im.depth,
+                   vmin=policy_config["vis"]["vmin"],
+                   vmax=policy_config["vis"]["vmax"])
+        vis.grasp(action.grasp, scale=2.5, show_center=False, show_axis=True)
+        vis.title("Planned grasp at depth {0:.3f}m with Q={1:.3f}".format(
+            action.grasp.depth, action.q_value))
+        vis.show()

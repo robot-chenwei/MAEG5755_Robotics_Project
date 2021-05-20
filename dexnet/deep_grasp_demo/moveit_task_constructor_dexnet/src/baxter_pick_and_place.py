@@ -103,7 +103,9 @@ class PickAndPlace(object):
             joint_pos['left_w0'] = jpos.item(0)[4]
             joint_pos['left_w1'] = jpos.item(0)[5]
             joint_pos['left_w2'] = jpos.item(0)[6]
-        return joint_pos
+            return joint_pos
+        else:
+            return None
 
     def _guarded_move_to_joint_position(self, joint_angles):
         if joint_angles:
@@ -168,8 +170,52 @@ class PickAndPlace(object):
         # retract to clear object
         self._retract()
 
+# rospy for the subscriber
+import rospy
+# ROS Image message
+from sensor_msgs.msg import Image
+# ROS Image message -> OpenCV2 image converter
+from cv_bridge import CvBridge, CvBridgeError
+# OpenCV2 for saving an image
+import cv2
+
+# Instantiate CvBridge
+bridge = CvBridge()
+depthImage = Image()
+colorImage = Image()
+saveImageFinish = False
+def depth_image_callback(msg):
+    global bridge, depthImage, saveImageFinish
+    try:
+        # Convert your ROS Image message to OpenCV2
+        if not saveImageFinish:
+            depthImage = bridge.imgmsg_to_cv2(msg, "passthrough")
+            depthImage = depthImage * 255.0
+            depthImage = numpy.nan_to_num(depthImage, nan=0)
+            depthImage = depthImage.astype(numpy.uint8)
+            depthImage = cv2.cvtColor(depthImage, cv2.COLOR_GRAY2BGR) # 8UC1
+    except CvBridgeError as e:
+        print(e)
+def color_image_callback(msg):
+    global bridge, colorImage
+    try:
+        # Convert your ROS Image message to OpenCV2
+        colorImage = bridge.imgmsg_to_cv2(msg, "passthrough")
+        # Convert your ROS Image message to OpenCV2# require Numpy arrays.
+        #cv_image_array = numpy.array(cv_image, dtype = numpy.dtype('f8'))
+        # Normalize the depth image to fall between 0 (black) and 1 (white)
+        # http://docs.ros.org/electric/api/rosbag_video/html/bag__to__video_8cpp_source.html lines 95-125
+        #saveImage = cv2.normalize(cv_image_array, cv_image_array, 0, 1, cv2.NORM_MINMAX)
+    except CvBridgeError as e:
+        print(e)
+
 def main():
+    global bridge, saveImage, saveImageFinish
     rospy.init_node("baxter_pick_and_place_demo")
+    # Set up your subscriber and define its callback
+    rospy.Subscriber("/camera/depth/image_raw", Image, depth_image_callback)
+    rospy.Subscriber("/camera/rgb/image_raw", Image, color_image_callback)
+
     # Load Gazebo Models via Spawning Services
     # Note that the models reference is the /world frame
     # and the IK operates with respect to the /base frame
@@ -189,21 +235,22 @@ def main():
                              'left_s1': -0.9999781166910306}
     pnp = PickAndPlace(limb, hover_distance)
     # An orientation for gripper fingers to be overhead and parallel to the obj
-    overhead_orientation = Quaternion(
-                             x=-0.0249590815779,
-                             y=0.999649402929,
-                             z=0.00737916180073,
-                             w=0.00486450832011)
+    overhead_orientation = Quaternion(0, 1, 0, 0)
                              
     # Feel free to add additional desired poses for the object.
     # Each additional pose will get its own pick and place.
+    print('save image')
+    cv2.imwrite('/home/trs/ros_ws/depth.png', depthImage)
+    cv2.imwrite('/home/trs/ros_ws/color.png', colorImage)
+    rospy.sleep(1)
+    saveImageFinish = True
     print('calculate pose')
     try: 
         rospy.wait_for_service('gqcnn_grasp')
         gqcnn_grasp = rospy.ServiceProxy('gqcnn_grasp', GQCNNGrasp)
         req = GQCNNGraspRequest()
-        req.color_img_file_path = '/home/trs/ros_ws/src/MAEG5755_Robotics_Project/dexnet/deep_grasp_demo/moveit_task_constructor_dexnet/data/images/rgb_cylinder_overhead.png'
-        req.depth_img_file_path = '/home/trs/ros_ws/src/MAEG5755_Robotics_Project/dexnet/deep_grasp_demo/moveit_task_constructor_dexnet/data/images/depth_cylinder_overhead.png'
+        req.color_img_file_path = '/home/trs/ros_ws/color.png'
+        req.depth_img_file_path = '/home/trs/ros_ws/depth.png'
         res = gqcnn_grasp(req)
     except rospy.ServiceException as e:
         print("Service call failed: %s"%e)
@@ -212,23 +259,52 @@ def main():
     if res:
         res_size = len(res.q_values)
     if res_size:
-        q_values = res.q_values[0]
-        grasps = res.grasps[0]
-        for i in range(1, res_size):
-    	    if q_values < res.q_values[i]:
-    	        q_values = res.q_values[i]
-    	        grasps = res.grasps[i]
-        grasps.pose.orientation = Quaternion(0, 1, 0, 0)
-        grasps.pose.position.x += 0.71
-        grasps.pose.position.y += 0.09
-        grasps.pose.position.z -= 0.65
-        print("get pose from gqcnn_grasp with max q_values")
-        print(grasps, q_values)
+        q_values = 0.0
+        grasps = copy.deepcopy(res.grasps[0])
+        canGrasp = False
+        for i in range(0, res_size):
+            
+            res.grasps[i].pose.orientation = overhead_orientation
+            x = res.grasps[i].pose.position.x
+            y = res.grasps[i].pose.position.y
+            z = res.grasps[i].pose.position.z
+            res.grasps[i].pose.position.x = z + 0.19
+            res.grasps[i].pose.position.y = -x - 0.01
+            res.grasps[i].pose.position.z = -y + 0.02
+            
+            # res.grasps[i].pose.position.y += 0.02
+            # res.grasps[i].pose.position.z -= 0.55
+            canSolveIK1 = pnp.ik_request(res.grasps[i].pose)
+            res.grasps[i].pose.position.z += pnp._hover_distance
+            canSolveIK2 = pnp.ik_request(res.grasps[i].pose)
+            res.grasps[i].pose.position.z -= pnp._hover_distance
+            canSolveIK = False
+            if canSolveIK1 and canSolveIK2:
+                canSolveIK = True
+            if canSolveIK and q_values < res.q_values[i]:
+                q_values = res.q_values[i]
+                grasps = copy.deepcopy(res.grasps[i])
+                canGrasp = True
+        print("INFO: Get pose from gqcnn_grasp with max q_values")
+        print(grasps, '\n q_value = ', q_values)
+        print(pnp.ik_request(res.grasps[i].pose))
+        res.grasps[i].pose.position.z += pnp._hover_distance
+        print(pnp.ik_request(res.grasps[i].pose))
+        res.grasps[i].pose.position.z -= pnp._hover_distance
+    else:
+        print('ERROR: No return from gqcnn!')
+    if not canGrasp:
+        print('ERROR: Can not find the grasping pose that can solve IK')
+        grasps.pose = Pose(
+        position=Point(x=0.70, y=0.15, z=-0.129),
+        orientation=overhead_orientation)
 
     block_poses = list()
-    block_poses.append(grasps.pose)
-    grasps.pose.position.y -= 0.2
-    block_poses.append(grasps.pose)
+    pose1 = copy.deepcopy(grasps.pose)
+    block_poses.append(pose1)
+    pose2 = copy.deepcopy(grasps.pose)
+    pose2.position.y += 0.1
+    block_poses.append(pose2)
         
     # Move to the desired starting angles
     pnp.move_to_start(starting_joint_angles)

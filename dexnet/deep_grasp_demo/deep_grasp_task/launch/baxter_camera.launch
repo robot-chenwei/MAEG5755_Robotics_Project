@@ -13,6 +13,11 @@
   <arg name="right_electric_gripper" default="true"/>
 
   <!-- Load the URDF into the ROS Parameter Server -->
+  <!-- spawn object -->
+  <node name="spawn_table" pkg="gazebo_ros" type="spawn_model"
+     args="-file $(find baxter_sim_examples)/models/cafe_table/model.sdf -sdf -model cafe_table -x 1.05" />
+  <!-- cylinder -->
+  
   <!-- This xacro will pull in baxter_base.urdf.xacro, left_end_effector.urdf.xacro,
                                            and right_end_effector.urdf.xacro
        Note: if you set this to false, you MUST have set the robot_description prior
@@ -62,13 +67,8 @@
       <arg name="gui" value="$(arg gui)" />
   </include>
   
-  <!-- spawn object -->
-  <!-- cylinder -->
   <param name="object_description" command="$(find xacro)/xacro '$(find deep_grasp_task)/urdf/objects/cylinder.urdf.xacro'"/>
   <node name="spawn_gazebo_object" pkg="gazebo_ros" type="spawn_model"
-     args="-urdf -param object_description -model cylinder -x 0.7 -z 1.055" respawn="false" output="screen" />
-  
-  <node name="spawn_table" pkg="gazebo_ros" type="spawn_model"
-     args="-file $(find baxter_sim_examples)/models/cafe_table/model.sdf -sdf -model cafe_table -x 1" />
+     args="-urdf -param object_description -model cylinder -x 0.7 -y 0.0 -z 1.905" respawn="false" output="screen" />
 
 </launch>

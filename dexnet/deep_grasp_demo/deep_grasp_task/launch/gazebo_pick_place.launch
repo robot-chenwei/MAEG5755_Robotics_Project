@@ -7,7 +7,7 @@
   <!-- cylinder -->
   <param name="object_description" command="$(find xacro)/xacro '$(find deep_grasp_task)/urdf/objects/cylinder.urdf.xacro'"/>
   <node name="spawn_gazebo_object" pkg="gazebo_ros" type="spawn_model"
-     args="-urdf -param object_description -model cylinder -x 0.5 -y -0.25 -z 0.125" respawn="false" output="screen" />
+     args="-urdf -param object_description -model cylinder -x 0.7 -y 0.0 -z 0.125" respawn="false" output="screen" />
 
   <!-- bar clamp -->
  <!-- <param name="object_description" command="$(find xacro)/xacro '$(find deep_grasp_task)/urdf/objects/bar_clamp.urdf.xacro'"/>
