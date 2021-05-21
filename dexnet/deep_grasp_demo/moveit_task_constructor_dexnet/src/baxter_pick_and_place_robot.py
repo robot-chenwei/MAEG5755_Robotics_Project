@@ -240,8 +240,8 @@ def main():
     colorImage = numpy.asanyarray(color_frame.get_data())
     grayImage = cv2.cvtColor(colorImage, cv2.COLOR_BGR2GRAY)
     depthImage = numpy.asanyarray(depth_frame.get_data())
-    depthImage = (depthImage < 600) * depthImage
-    depthImage = (grayImage > 9) * depthImage
+    depthImage = (depthImage < 800) * depthImage
+    depthImage = (grayImage > 7) * depthImage
     depthImage = depthImage * 255.0 / 1000.0
     depthImage = numpy.nan_to_num(depthImage, nan=0.0)
     depthImage = depthImage.astype(numpy.uint8)
@@ -272,6 +272,12 @@ def main():
         canGrasp = False
         for i in range(0, res_size):
             res.grasps[i].pose.orientation = overhead_orientation
+            '''
+            T = numpy.array([[ 0.9955, -0.0293, -0.0903,  0.9118], 
+                             [-0.0102, -0.9786,  0.2057, -0.0268],
+                             [-0.0944, -0.2038, -0.9744,  0.6400],
+                             [ 0.0000,  0.0000,  0.0000,  1.0000]])
+            '''
             T = numpy.array([[ 0.9971, -0.0362, -0.0666,  0.9101], 
                              [ 0.0171, -0.7482,  0.6632, -0.2712],
                              [-0.0738, -0.6626, -0.7454,  0.4262],
@@ -285,7 +291,7 @@ def main():
             print('bPo', bPo)
             res.grasps[i].pose.position.x = bPo[0]
             res.grasps[i].pose.position.y = bPo[1]
-            res.grasps[i].pose.position.z = bPo[2] + 0.02
+            res.grasps[i].pose.position.z = bPo[2]
             
             canSolveIK1 = pnp.ik_request(res.grasps[i].pose)
             res.grasps[i].pose.position.z += pnp._hover_distance
@@ -314,20 +320,19 @@ def main():
 
     block_poses = list()
     pose1 = copy.deepcopy(grasps.pose)
+    pose1.position.z = 0
     block_poses.append(pose1)
     pose2 = copy.deepcopy(grasps.pose)
-    pose2.position.y += 0.1
-    block_poses.append(pose2)
+    pose2.position.z = 0
+    pose2.position.y += 0.20
+    if pose2.position.y > 0.5:
+        pose2.position.y = 0.5
         
     # Move to the desired starting angles
     pnp.move_to_start(starting_joint_angles)
-    idx = 0
-    while not rospy.is_shutdown():
-        print("\nPicking...")
-        pnp.pick(block_poses[idx])
-        print("\nPlacing...")
-        idx = (idx+1) % len(block_poses)
-        pnp.place(block_poses[idx])
+    pnp.pick(pose1)
+    pnp.place(pose2)
+    pnp.move_to_start(starting_joint_angles)
     return 0
 
 if __name__ == '__main__':
