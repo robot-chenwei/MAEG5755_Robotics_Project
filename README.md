@@ -5,16 +5,15 @@
 Wei CHEN, Jichun YANG, Zhi CHEN, Yihu LING
 
 ## Platfrom
-+ Ubuntu 18.04 LTS
-+ rosdistro: melodic 1.14.10
++ Ubuntu 20.04 LTS
++ ros: noetic 
 + nvidia driver 460
-+ cuda toolkit 10
++ cuda toolkit 10.0
++ cudnn 7.4
 
 ## Installation
 
 ### 1 Install nvidia driver and cuda
-https://phoenixnap.com/kb/install-nvidia-drivers-ubuntu
-+ 2 Install nvidia driver and cuda
 https://phoenixnap.com/kb/install-nvidia-drivers-ubuntu
 
 ### 2 Install ROS
@@ -27,26 +26,29 @@ https://blog.csdn.net/weixin_42856871/article/details/108352958
 https://github.com/orocos/orocos_kinematics_dynamics
 
 ### 4 deep grasp
++ dex-net 4.0
+https://github.com/PickNikRobotics/deep_grasp_demo
+https://github.com/mfkenson/MAEG5755-2021-Team-PARK
++ simulation and robot control code
 ```bash
-git clone --recursive https://github.com/mfkenson/MAEG5755-2021-Team-PARK.git team-park
 git clone https://github.com/robot-chenwei/moveit_task_constructor.git
-git clone https://github.com/PickNikRobotics/deep_grasp_demo.git
+git clone https://github.com/robot-chenwei/MAEG5755_Robotics_Project.git
 ```
 
 ## Test
 
-### 1. Franka panda
+### 1. Baxter simulation
++ terminal 1
 ```bash
-roslaunch deep_grasp_task panda_world.launch 
+roslaunch baxter_gazebo baxter_camera.launch
 ```
++ terminal 2
 ```bash
-roslaunch moveit_task_constructor_dexnet dexnet_demo.launch 
+roslaunch moveit_task_constructor_dexnet dexnet_baxter_simulation.launch load_image:=false
 ```
 
-### 2. Baxter
+### 2. Baxter robot
 ```bash
-roslaunch baxter_gazebo baxter_world.launch
-```
-```bash
-roslaunch moveit_task_constructor_dexnet dexnet_baxter.launch 
+./baxter.sh
+roslaunch moveit_task_constructor_dexnet dexnet_baxter.launch load_image:=false
 ```
