@@ -125,10 +125,12 @@ if __name__ == "__main__":
 
     # assume not mask is provided
     # segmask = depth_im.invalid_pixel_mask().inverse()
+    segmask = np.zeros(depth_im.shape)
+    segmask[200:440, 160:480] = 1
     segmask = BinaryImage(255 *
-                          np.ones(depth_im.shape).astype(np.uint8),
+                          segmask.astype(np.uint8),
                           frame=color_im.frame)
-
+    
     # inpaint images.
     # color_im = color_im.inpaint(
     #     rescale_factor=config["inpaint_rescale_factor"])
@@ -144,9 +146,6 @@ if __name__ == "__main__":
 
     # Query policy for all sampled grasps
     grasp_candidates, q_values = policy.action_set(state)
-    # print('grasp_candidates', grasp_candidates)
-    # print('q_values', q_values)
-
     candidate_array = []
     for i in range(len(grasp_candidates)):
         # Position: [x y z]

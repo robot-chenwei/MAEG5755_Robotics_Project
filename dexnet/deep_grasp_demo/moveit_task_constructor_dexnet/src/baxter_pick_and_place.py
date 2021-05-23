@@ -299,23 +299,15 @@ def main():
         position=Point(x=0.70, y=0.15, z=-0.129),
         orientation=overhead_orientation)
 
-    block_poses = list()
     pose1 = copy.deepcopy(grasps.pose)
-    block_poses.append(pose1)
     pose2 = copy.deepcopy(grasps.pose)
     pose2.position.y += 0.1
-    block_poses.append(pose2)
         
     # Move to the desired starting angles
     pnp.move_to_start(starting_joint_angles)
-    idx = 0
-    while not rospy.is_shutdown():
-        print("\nPicking...")
-        pnp.pick(block_poses[idx])
-        print("\nPlacing...")
-        idx = (idx+1) % len(block_poses)
-        pnp.place(block_poses[idx])
-    return 0
+    pnp.pick(pose1)
+    pnp.place(pose2)
+    pnp.move_to_start(starting_joint_angles)
 
 if __name__ == '__main__':
     sys.exit(main())
