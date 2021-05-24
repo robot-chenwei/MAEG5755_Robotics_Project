@@ -1,5 +1,5 @@
 # 2020R2 MAEG57550 Robotics Project 2 Bin Picking
-======
+------
 
 ## Team members
 Wei CHEN, Jichun YANG, Zhi CHEN, Yihu LING
