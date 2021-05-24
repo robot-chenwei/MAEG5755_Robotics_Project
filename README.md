@@ -47,28 +47,28 @@ roslaunch moveit_task_constructor_dexnet dexnet_baxter.launch load_image:=false
 + cuda toolkit 10.0
 + cudnn 7.4
 
-### 2. dependencies
-#### 2.1 Nvidia driver and cuda
+### 2. Dependencies
++ Nvidia driver and cuda
 https://phoenixnap.com/kb/install-nvidia-drivers-ubuntu
 
-#### 2.2 ROS
++ ROS
 https://github.com/rojas70/learning_ros_setup_scripts
 
-#### 2.3 python3.6
++ Python3.6
 https://blog.csdn.net/weixin_42856871/article/details/108352958
 
-#### 2.4 KDL
++ KDL
 https://github.com/orocos/orocos_kinematics_dynamics
 
-#### 2.5 dex-net 4.0
++ Dex-Net 4.0
 https://github.com/PickNikRobotics/deep_grasp_demo
 
-#### 2.6 moveit
++ MoveIt
 https://ros-planning.github.io/moveit_tutorials/doc/getting_started/getting_started.html
 
-#### 2.7 baxter
++ Baxter
 https://sdk.rethinkrobotics.com/wiki/Workstation_Setup
 
-#### 2.8 Fully setup
++ Fully setup
 https://github.com/mfkenson/MAEG5755-2021-Team-PARK
 
