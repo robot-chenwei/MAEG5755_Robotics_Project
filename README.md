@@ -26,14 +26,20 @@ https://blog.csdn.net/weixin_42856871/article/details/108352958
 https://github.com/orocos/orocos_kinematics_dynamics
 
 ### 4 deep grasp
-+ dex-net 4.0
++ 4.1 Step setup
+- dex-net 4.0
 https://github.com/PickNikRobotics/deep_grasp_demo
-https://github.com/mfkenson/MAEG5755-2021-Team-PARK
-+ simulation and robot control code
+- moveit
+https://ros-planning.github.io/moveit_tutorials/doc/getting_started/getting_started.html
+- baxter
+https://sdk.rethinkrobotics.com/wiki/Workstation_Setup
+- simulation and robot control code 
 ```bash
 git clone https://github.com/robot-chenwei/moveit_task_constructor.git
 git clone https://github.com/robot-chenwei/MAEG5755_Robotics_Project.git
 ```
++ 4.2 Fully setup
+https://github.com/mfkenson/MAEG5755-2021-Team-PARK
 
 ## Test
 
