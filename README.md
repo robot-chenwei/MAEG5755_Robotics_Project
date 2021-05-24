@@ -33,11 +33,10 @@ https://github.com/PickNikRobotics/deep_grasp_demo
 https://ros-planning.github.io/moveit_tutorials/doc/getting_started/getting_started.html
 - baxter
 https://sdk.rethinkrobotics.com/wiki/Workstation_Setup
-- baxter ik
-https://github.com/robot-chenwei/baxter_pykdl
 - simulation and robot control code 
 ```bash
 git clone https://github.com/robot-chenwei/moveit_task_constructor.git
+git clone https://github.com/robot-chenwei/baxter_pykdl.git
 git clone https://github.com/robot-chenwei/MAEG5755_Robotics_Project.git
 ```
 #### 4.2 Fully setup
