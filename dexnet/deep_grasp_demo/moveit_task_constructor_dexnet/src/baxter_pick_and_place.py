@@ -240,8 +240,8 @@ def main():
     # Feel free to add additional desired poses for the object.
     # Each additional pose will get its own pick and place.
     print('save image')
-    cv2.imwrite('/home/trs/ros_ws/depth.png', depthImage)
-    cv2.imwrite('/home/trs/ros_ws/color.png', colorImage)
+    cv2.imwrite('./depth.png', depthImage)
+    cv2.imwrite('./color.png', colorImage)
     rospy.sleep(1)
     saveImageFinish = True
     print('calculate pose')
@@ -249,8 +249,8 @@ def main():
         rospy.wait_for_service('gqcnn_grasp')
         gqcnn_grasp = rospy.ServiceProxy('gqcnn_grasp', GQCNNGrasp)
         req = GQCNNGraspRequest()
-        req.color_img_file_path = '/home/trs/ros_ws/color.png'
-        req.depth_img_file_path = '/home/trs/ros_ws/depth.png'
+        req.color_img_file_path = './color.png'
+        req.depth_img_file_path = './depth.png'
         res = gqcnn_grasp(req)
     except rospy.ServiceException as e:
         print("Service call failed: %s"%e)
@@ -268,7 +268,7 @@ def main():
             x = res.grasps[i].pose.position.x
             y = res.grasps[i].pose.position.y
             z = res.grasps[i].pose.position.z
-            res.grasps[i].pose.position.x = z + 0.19
+            res.grasps[i].pose.position.x = z + 0.18
             res.grasps[i].pose.position.y = -x - 0.01
             res.grasps[i].pose.position.z = -y + 0.02
             

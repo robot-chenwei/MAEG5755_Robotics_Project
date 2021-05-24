@@ -69,13 +69,11 @@ class PickAndPlace(object):
         self._hover_distance = hover_distance # in meters
         self._verbose = verbose # bool
         self._limb = baxter_interface.Limb(limb)
-        print("Getting __init__... ")
         self._gripper = baxter_interface.Gripper(limb)
         #ns = "ExternalTools/" + limb + "/PositionKinematicsNode/IKService"
         #self._iksvc = rospy.ServiceProxy(ns, SolvePositionIK)
         #rospy.wait_for_service(ns, 5.0)
         # verify robot is enabled
-        print("Getting robot state... ")
         self._rs = baxter_interface.RobotEnable(baxter_interface.CHECK_VERSION)
         self._init_state = self._rs.state().enabled
         print("Enabling robot... ")
@@ -240,15 +238,19 @@ def main():
     colorImage = numpy.asanyarray(color_frame.get_data())
     grayImage = cv2.cvtColor(colorImage, cv2.COLOR_BGR2GRAY)
     depthImage = numpy.asanyarray(depth_frame.get_data())
-    depthImage = (depthImage < 800) * depthImage
-    depthImage = (grayImage > 7) * depthImage
+    depthImage = (depthImage < 900) * depthImage
+    segmask = numpy.zeros(grayImage.shape)
+    segmask[150:400, 80:540] = 1
+    depthImage = segmask * depthImage
+    depthImage = (grayImage > 25) * depthImage
+    depthImage = (grayImage < 100) * depthImage
     depthImage = depthImage * 255.0 / 1000.0
     depthImage = numpy.nan_to_num(depthImage, nan=0.0)
     depthImage = depthImage.astype(numpy.uint8)
     # depthImage = cv2.cvtColor(depthImage, cv2.COLOR_GRAY2BGR) # 8UC1
     print('save image')
-    cv2.imwrite('/home/trs/ros_ws/color.png', colorImage)
-    cv2.imwrite('/home/trs/ros_ws/depth.png', depthImage)
+    cv2.imwrite('./color.png', colorImage)
+    cv2.imwrite('./depth.png', depthImage)
     rospy.sleep(1)
     saveImageFinish = True
     print('calculate pose')
@@ -257,12 +259,16 @@ def main():
         rospy.wait_for_service('gqcnn_grasp')
         gqcnn_grasp = rospy.ServiceProxy('gqcnn_grasp', GQCNNGrasp)
         req = GQCNNGraspRequest()
-        req.color_img_file_path = '/home/trs/ros_ws/color.png'
-        req.depth_img_file_path = '/home/trs/ros_ws/depth.png'
+        req.color_img_file_path = './color.png'
+        req.depth_img_file_path = './depth.png'
         res = gqcnn_grasp(req)
     except rospy.ServiceException as e:
         print("Service call failed: %s"%e)
     
+    rTc = numpy.array([[ 0.9960, -0.0281, -0.0848,  0.9039], 
+                       [ 0.0347, -0.7526,  0.6576, -0.2598],
+                       [-0.0823, -0.6579, -0.7486,  0.4249],
+                       [ 0.0000,  0.0000,  0.0000,  1.0000]])
     res_size = 0
     if res:
         res_size = len(res.q_values)
@@ -272,21 +278,11 @@ def main():
         canGrasp = False
         for i in range(0, res_size):
             res.grasps[i].pose.orientation = overhead_orientation
-            '''
-            T = numpy.array([[ 0.9955, -0.0293, -0.0903,  0.9118], 
-                             [-0.0102, -0.9786,  0.2057, -0.0268],
-                             [-0.0944, -0.2038, -0.9744,  0.6400],
-                             [ 0.0000,  0.0000,  0.0000,  1.0000]])
-            '''
-            T = numpy.array([[ 0.9971, -0.0362, -0.0666,  0.9101], 
-                             [ 0.0171, -0.7482,  0.6632, -0.2712],
-                             [-0.0738, -0.6626, -0.7454,  0.4262],
-                             [ 0.0000,  0.0000,  0.0000,  1.0000]])
             x = res.grasps[i].pose.position.x
             y = res.grasps[i].pose.position.y
             z = res.grasps[i].pose.position.z
             cPo = numpy.array([x, y, z, 1])
-            bPo = numpy.dot(T, cPo)
+            bPo = numpy.dot(rTc, cPo)
             print('cPo', cPo)
             print('bPo', bPo)
             res.grasps[i].pose.position.x = bPo[0]
@@ -320,13 +316,13 @@ def main():
 
     block_poses = list()
     pose1 = copy.deepcopy(grasps.pose)
-    pose1.position.z = 0
+    # pose1.position.z = -0.02
     block_poses.append(pose1)
     pose2 = copy.deepcopy(grasps.pose)
-    pose2.position.z = 0
-    pose2.position.y += 0.20
-    if pose2.position.y > 0.5:
-        pose2.position.y = 0.5
+    # pose2.position.z = -0.02
+    # pose2.position.y += 0.20
+    #if pose2.position.y > 0.5:
+    pose2.position.y = 0.5
         
     # Move to the desired starting angles
     pnp.move_to_start(starting_joint_angles)
