@@ -40,28 +40,28 @@ roslaunch moveit_task_constructor_dexnet dexnet_baxter.launch load_image:=false
 
 ## FAQ
 
-### Platfrom
+### 1. Platfrom
 + Ubuntu 20.04 LTS
 + ros: noetic 
 + nvidia driver 460
 + cuda toolkit 10.0
 + cudnn 7.4
 
-### Install dependency
-#### 1 Install nvidia driver and cuda
+### 2. Install dependency
+#### 2.1 Install nvidia driver and cuda
 https://phoenixnap.com/kb/install-nvidia-drivers-ubuntu
 
-#### 2 Install ROS
+#### 2.2 Install ROS
 https://github.com/rojas70/learning_ros_setup_scripts
 
-#### 3 Install dependencies
+#### 2.3 Install dependencies
 + python3.6
 https://blog.csdn.net/weixin_42856871/article/details/108352958
 + kdl
 https://github.com/orocos/orocos_kinematics_dynamics
 
-#### 4 deep grasp
-##### 4.1 Step setup
+#### 2.4 deep grasp
+##### 2.4.1 Step setup
 - dex-net 4.0
 https://github.com/PickNikRobotics/deep_grasp_demo
 - moveit
@@ -69,6 +69,6 @@ https://ros-planning.github.io/moveit_tutorials/doc/getting_started/getting_star
 - baxter
 https://sdk.rethinkrobotics.com/wiki/Workstation_Setup
 
-##### 4.2 Fully setup
+##### 2.4.2 Fully setup
 https://github.com/mfkenson/MAEG5755-2021-Team-PARK
 
