@@ -69,6 +69,6 @@ https://ros-planning.github.io/moveit_tutorials/doc/getting_started/getting_star
 #### 2.7 baxter
 https://sdk.rethinkrobotics.com/wiki/Workstation_Setup
 
-##### 2.8 Fully setup
+#### 2.8 Fully setup
 https://github.com/mfkenson/MAEG5755-2021-Team-PARK
 
