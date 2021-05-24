@@ -33,18 +33,24 @@ https://github.com/PickNikRobotics/deep_grasp_demo
 https://ros-planning.github.io/moveit_tutorials/doc/getting_started/getting_started.html
 - baxter
 https://sdk.rethinkrobotics.com/wiki/Workstation_Setup
-- simulation and robot control code 
+
+#### 4.2 Fully setup
+https://github.com/mfkenson/MAEG5755-2021-Team-PARK
+
+## Summary
+This is the MAEG57550 Robotics Project 2 Bin Picking.
+The camera get the depth image and sent to the Dex-Net 4.0 to get the grasp candidates.
+Then combine with inverse kinematics, the most approrpiate candidate is selected as the grasp pose.
+Finally, run the robot by using inverse kinematics to achieve the pick and place task.
+
+## QuickStart
+
+### 1. Baxter simulation
 ```bash
 git clone https://github.com/robot-chenwei/moveit_task_constructor.git
 git clone https://github.com/robot-chenwei/baxter_pykdl.git
 git clone https://github.com/robot-chenwei/MAEG5755_Robotics_Project.git
 ```
-#### 4.2 Fully setup
-https://github.com/mfkenson/MAEG5755-2021-Team-PARK
-
-## Test
-
-### 1. Baxter simulation
 + terminal 1
 ```bash
 roslaunch baxter_gazebo baxter_camera.launch
@@ -59,3 +65,13 @@ roslaunch moveit_task_constructor_dexnet dexnet_baxter_simulation.launch load_im
 ./baxter.sh
 roslaunch moveit_task_constructor_dexnet dexnet_baxter.launch load_image:=false
 ```
+
+## Overview
+
+## Structure
+
+## Video
+![](https://www.youtube.com/watch?v=rpCKKMZ19CY)
+
+## FAQ
+
