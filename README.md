@@ -9,6 +9,8 @@ Finally, run the robot by using inverse kinematics to achieve the pick and place
 
 ## QuickStart
 
+If you dont have the ros package of MoveIt or Baxter, please go to FAQ and install the dependencies.
+
 ### 1. Baxter simulation
 ```bash
 git clone https://github.com/robot-chenwei/baxter_pykdl.git
