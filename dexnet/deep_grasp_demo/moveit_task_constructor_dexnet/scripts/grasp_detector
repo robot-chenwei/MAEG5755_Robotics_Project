@@ -126,7 +126,7 @@ if __name__ == "__main__":
     # assume not mask is provided
     # segmask = depth_im.invalid_pixel_mask().inverse()
     segmask = np.zeros(depth_im.shape)
-    segmask[150:400, 80:540] = 1
+    segmask[150:450, 80:540] = 1
     segmask = BinaryImage(255 *
                           segmask.astype(np.uint8),
                           frame=color_im.frame)

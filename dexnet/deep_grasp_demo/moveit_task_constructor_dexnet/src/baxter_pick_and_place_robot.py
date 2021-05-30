@@ -234,22 +234,28 @@ def main():
         else:
             getImage = True
 
-    # Convert images to np arrays
+    # Convert images to np array
     colorImage = numpy.asanyarray(color_frame.get_data())
     grayImage = cv2.cvtColor(colorImage, cv2.COLOR_BGR2GRAY)
     depthImage = numpy.asanyarray(depth_frame.get_data())
     depthImage = (depthImage < 900) * depthImage
+    backgroundImage = cv2.imread('/home/trs/ros_ws/src/MAEG5755_Robotics_Project/dexnet/background.png')
+    if len(backgroundImage):
+        backgroundImage = numpy.asanyarray(backgroundImage)
+        backgroundGray = cv2.cvtColor(backgroundImage, cv2.COLOR_BGR2GRAY)
+        depthImage = (abs(backgroundGray - grayImage) > 15) * depthImage
+        depthImage = (abs(backgroundGray - grayImage) < 248) * depthImage
     segmask = numpy.zeros(grayImage.shape)
-    segmask[150:400, 80:540] = 1
+    segmask[150:450, 80:540] = 1
     depthImage = segmask * depthImage
-    depthImage = (grayImage > 25) * depthImage
-    depthImage = (grayImage < 100) * depthImage
+    #depthImage = (grayImage > 25) * depthImage
+    #depthImage = (grayImage < 100) * depthImage
     depthImage = depthImage * 255.0 / 1000.0
     depthImage = numpy.nan_to_num(depthImage, nan=0.0)
     depthImage = depthImage.astype(numpy.uint8)
     # depthImage = cv2.cvtColor(depthImage, cv2.COLOR_GRAY2BGR) # 8UC1
     print('save image')
-    cv2.imwrite('./color.png', colorImage)
+    cv2.imwrite('/color.png', colorImage)
     cv2.imwrite('./depth.png', depthImage)
     rospy.sleep(1)
     saveImageFinish = True
@@ -286,7 +292,7 @@ def main():
             print('cPo', cPo)
             print('bPo', bPo)
             res.grasps[i].pose.position.x = bPo[0]
-            res.grasps[i].pose.position.y = bPo[1]
+            res.grasps[i].pose.position.y = bPo[1] - 0.01
             res.grasps[i].pose.position.z = bPo[2]
             
             canSolveIK1 = pnp.ik_request(res.grasps[i].pose)
